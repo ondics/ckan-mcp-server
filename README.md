@@ -9,7 +9,7 @@ This is an MCP server that provides access to CKAN (Comprehensive Knowledge Arch
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.13 or higher
 - pip (Python package installer)
 
 ## Installation
@@ -72,6 +72,9 @@ The MCP server provides the following tools:
 ### Organizations
 - `ckan_organization_list`: List all organizations
 - `ckan_organization_show`: Show organization details
+
+### DataStore
+- `ckan_datastore_search` Search DataStore Tables by Resource
 
 ### Groups and Tags
 - `ckan_group_list`: List all groups

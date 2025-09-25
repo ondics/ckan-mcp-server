@@ -14,8 +14,8 @@ dependencies = [
     "mcp>=1.0.0",
     "openai-agents>=0.0.16",
     "python-dotenv>=1.1.0",
-    "uv>=0.7.8",
-    "certifi",
+    "uv>=0.8.9",
+    "certifi==2025.8.3",
 ]
 
 [build-system]

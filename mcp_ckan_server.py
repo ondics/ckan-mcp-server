@@ -235,7 +235,156 @@ async def handle_list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {}
             }
-        )
+        ),
+
+        types.Tool(
+            name="ckan_datastore_search",
+            description="Search records in a dataset",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "resource_id": {
+                        "type": "string",
+                        "description": "ID of the resource to search"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of results"
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "description": "Number of results to skip"
+                    },
+                    "q": {
+                        "type": "string",
+                        "description": "Query string in CKAN search syntax"
+                    },
+                    "sort": {
+                        "type": "string",
+                        "description": "Sort order e.g. 'field asc'"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Fields to return in results"
+                    }
+                },
+                "required": ["resource_id"]
+            }
+        ),
+        # @TODO Untested
+        # types.Tool(
+        #     name="ckan_datastore_create",
+        #     description="Create an empty dataset in the datastore",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to create"
+        #             },
+        #             "table_name": {
+        #                 "type": "string",
+        #                 "description": "Optional table name"
+        #             },
+        #             "schema": {
+        #                 "type": "object",
+        #                 "description": "Schema definition for the dataset"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_upsert",
+        #     description="Insert or update rows in a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to upsert"
+        #             },
+        #             "records": {
+        #                 "type": "array",
+        #                 "items": {"type": "object","properties": {}},
+        #                 "description": "List of records to upsert"
+        #             },
+        #             "method": {
+        #                 "type": "string",
+        #                 "enum": ["insert", "update", "upsert"],
+        #                 "description": "Method to use"
+        #             }
+        #         },
+        #         "required": ["resource_id", "records", "method"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_delete",
+        #     description="Delete rows from a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to delete from"
+        #             },
+        #             "ids": {
+        #                 "type": "array",
+        #                 "items": {"type": "string"},
+        #                 "description": "List of record IDs to delete"
+        #             }
+        #         },
+        #         "required": ["resource_id", "ids"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_commit",
+        #     description="Commit changes to a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to commit"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_table_create",
+        #     description="Create a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource"
+        #             },
+        #             "schema": {
+        #                 "type": "object",
+        #                 "description": "Schema definition"
+        #             }
+        #         },
+        #         "required": ["resource_id", "schema"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_table_delete",
+        #     description="Delete a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to delete"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        
     ]
 
 @server.call_tool()
@@ -295,6 +444,19 @@ async def handle_call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> Li
             
         elif name == "ckan_status_show":
             result = await ckan_client._make_request("GET", "status_show")
+
+        elif name == "ckan_datastore_search":
+            result = await ckan_client._make_request("POST", "datastore_search", data=arguments)
+        # @TODO: untested
+        # elif name == "ckan_datastore_create":
+        #     result = await ckan_client._make_request("POST", "datastore_create", data=arguments)
+        # elif name == "ckan_datastore_update":
+        #     result = await ckan_client._make_request("POST", "datastore_update", data=arguments)
+        # elif name == "ckan_datastore_upsert":
+        #     result = await ckan_client._make_request("POST", "datastore_upsert", data=arguments)
+        # elif name == "ckan_datastore_delete":
+        #     result = await ckan_client._make_request("POST", "datastore_delete", data=arguments)
+        
             
         else:
             raise Exception(f"Unknown tool: {name}")
