@@ -9,10 +9,21 @@ services:
   #   build:
   #     dockerfile: ../Dockerfile
   #     context: tests
-  ckan-mcp-server:
+  ckan-mcp-server-stdio:
+    profiles:
+      - stdio
     build: .
     env_file: .env
     stdin_open: true
     tty: true
 
     entrypoint: ["python", "mcp_ckan_server.py"]
+  ckan-mcp-server:
+    profiles:
+      - sse
+    build: .
+    env_file: .env
+    ports:
+      - "8000:8000"
+
+    entrypoint: ["python", "mcp_ckan_server.py","--transport", "sse","--port","8000","--host","0.0.0.0"]

@@ -2,7 +2,8 @@
 #!/usr/bin/env python3
 
 import asyncio
-
+import anyio
+import click
 import json
 import logging
 import os
@@ -17,18 +18,16 @@ import mcp.types as types
 from mcp.server import NotificationOptions, Server
 import mcp.server.stdio
 from dotenv import load_dotenv
-
+from starlette.requests import Request
 
 load_dotenv()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
 # Configure logging
-logging.basicConfig(level=logging.INFO,filename="mcp-ckan-server.log")
-logger = logging.getLogger("mcp-ckan-server")
+
 
 class CKANAPIClient:
     """CKAN API client for making HTTP requests"""
     
-    def __init__(self, base_url: str, api_key: Optional[str] = None):
     def __init__(self, base_url: str, api_key: Optional[str] = None, basic_auth_username: Optional[str] = None, basic_auth_password: Optional[str] = None,):
         self.base_url = base_url.rstrip('/')
         self.api_key = api_key
@@ -59,7 +58,6 @@ class CKANAPIClient:
         headers = self._get_headers()
         
         try:
-            
             auth = None
             if self.basic_auth_username and self.basic_auth_password:
                 auth = aiohttp.BasicAuth(login=self.basic_auth_username,password=self.basic_auth_password)
@@ -81,9 +79,9 @@ class CKANAPIClient:
 ckan_client = None
 
 # Initialize MCP server
-server = Server("ckan-mcp-server")
+app = Server("ckan-mcp-server")
 
-@server.list_tools()
+@app.list_tools()
 async def handle_list_tools() -> List[types.Tool]:
     """List available CKAN API tools"""
     return [
@@ -241,10 +239,160 @@ async def handle_list_tools() -> List[types.Tool]:
                 "type": "object",
                 "properties": {}
             }
-        )
+        ),
+
+        types.Tool(
+            name="ckan_datastore_search",
+            description="Search records in a dataset",
+            inputSchema={
+                "type": "object",
+                "required": ["limit"],
+                "properties": {
+                    "resource_id": {
+                        "type": "string",
+                        "description": "ID of the resource to search"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Maximum number of results"
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "description": "Number of results to skip"
+                    },
+                    "q": {
+                        "type": "string",
+                        "description": "Query string in CKAN search syntax"
+                    },
+                    "sort": {
+                        "type": "string",
+                        "description": "Sort order e.g. 'field asc'"
+                    },
+                    "fields": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Fields to return in results"
+                    }
+                },
+                "required": ["resource_id"]
+            }
+        ),
+        # @TODO Untested
+        # types.Tool(
+        #     name="ckan_datastore_create",
+        #     description="Create an empty dataset in the datastore",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to create"
+        #             },
+        #             "table_name": {
+        #                 "type": "string",
+        #                 "description": "Optional table name"
+        #             },
+        #             "schema": {
+        #                 "type": "object",
+        #                 "description": "Schema definition for the dataset"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_upsert",
+        #     description="Insert or update rows in a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to upsert"
+        #             },
+        #             "records": {
+        #                 "type": "array",
+        #                 "items": {"type": "object","properties": {}},
+        #                 "description": "List of records to upsert"
+        #             },
+        #             "method": {
+        #                 "type": "string",
+        #                 "enum": ["insert", "update", "upsert"],
+        #                 "description": "Method to use"
+        #             }
+        #         },
+        #         "required": ["resource_id", "records", "method"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_delete",
+        #     description="Delete rows from a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to delete from"
+        #             },
+        #             "ids": {
+        #                 "type": "array",
+        #                 "items": {"type": "string"},
+        #                 "description": "List of record IDs to delete"
+        #             }
+        #         },
+        #         "required": ["resource_id", "ids"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_commit",
+        #     description="Commit changes to a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to commit"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_table_create",
+        #     description="Create a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource"
+        #             },
+        #             "schema": {
+        #                 "type": "object",
+        #                 "description": "Schema definition"
+        #             }
+        #         },
+        #         "required": ["resource_id", "schema"]
+        #     }
+        # ),
+        # types.Tool(
+        #     name="ckan_datastore_table_delete",
+        #     description="Delete a datastore table",
+        #     inputSchema={
+        #         "type": "object",
+        #         "properties": {
+        #             "resource_id": {
+        #                 "type": "string",
+        #                 "description": "ID of the resource to delete"
+        #             }
+        #         },
+        #         "required": ["resource_id"]
+        #     }
+        # ),
+        
     ]
 
-@server.call_tool()
+@app.call_tool()
 async def handle_call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> List[types.TextContent]:
     """Handle tool calls to CKAN API"""
     if not ckan_client:
@@ -301,6 +449,19 @@ async def handle_call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> Li
             
         elif name == "ckan_status_show":
             result = await ckan_client._make_request("GET", "status_show")
+
+        elif name == "ckan_datastore_search":
+            result = await ckan_client._make_request("POST", "datastore_search", data=arguments)
+        # @TODO: untested
+        # elif name == "ckan_datastore_create":
+        #     result = await ckan_client._make_request("POST", "datastore_create", data=arguments)
+        # elif name == "ckan_datastore_update":
+        #     result = await ckan_client._make_request("POST", "datastore_update", data=arguments)
+        # elif name == "ckan_datastore_upsert":
+        #     result = await ckan_client._make_request("POST", "datastore_upsert", data=arguments)
+        # elif name == "ckan_datastore_delete":
+        #     result = await ckan_client._make_request("POST", "datastore_delete", data=arguments)
+        
             
         else:
             raise Exception(f"Unknown tool: {name}")
@@ -321,7 +482,7 @@ async def handle_call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> Li
             )
         ]
 
-@server.list_resources()
+@app.list_resources()
 async def handle_list_resources() -> List[types.Resource]:
     """List available CKAN resources"""
     return [
@@ -339,7 +500,7 @@ async def handle_list_resources() -> List[types.Resource]:
         )
     ]
 
-@server.read_resource()
+@app.read_resource()
 async def handle_read_resource(uri: str) -> str:
     """Read CKAN resources"""
     if uri == "ckan://api/docs":
@@ -374,11 +535,26 @@ Full documentation: https://docs.ckan.org/en/latest/api/
         return json.dumps(config, indent=2)
     else:
         raise Exception(f"Unknown resource: {uri}")
-
-async def main():
+@click.command()
+@click.option("--host",default="127.0.0.1", help= "Hostname to listen on for SSE")
+@click.option("--port", default=8000, help="Port to listen on for SSE")
+@click.option(
+    "--transport",
+    type=click.Choice(["stdio", "sse"]),
+    default="stdio",
+    help="Transport type",
+)
+@click.option("--logpath",default="stderr",help="set path for Logfile")
+@click.option("--loglevel",default="INFO",type = click.Choice(logging.getLevelNamesMapping()),help="set Log Level")
+def main(host: str,port: int, transport: str,logpath:str,loglevel:str):
     """Main server function"""
     import os
-    
+    global logger
+    if logpath == "stderr":
+        logging.basicConfig(level=loglevel)
+    else:
+        logging.basicConfig(level=loglevel,filename=logpath)
+    logger = logging.getLogger("mcp-ckan-server")
     # Initialize CKAN client
     ckan_url = os.getenv("CKAN_URL")
     if not ckan_url:
@@ -386,31 +562,63 @@ async def main():
         raise Exception("CKAN_URL environment variable is required")
     
     ckan_api_key = os.getenv("CKAN_API_KEY")
+    ckan_basic_auth_username = os.getenv("CKAN_BASIC_AUTH_USERNAME")
+    ckan_basic_auth_password = os.getenv("CKAN_BASIC_AUTH_PASSWORD")
     
     global ckan_client
-    ckan_client = CKANAPIClient(ckan_url, ckan_api_key)
-    
+    ckan_client = CKANAPIClient(ckan_url, ckan_api_key,ckan_basic_auth_username,ckan_basic_auth_password)
+
     # Start the CKAN client session
-    await ckan_client.__aenter__()
-    
+
     try:
-        # Run the MCP server
-        async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-            await server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
+        if transport == "sse":
+            from mcp.server.sse import SseServerTransport
+            from starlette.applications import Starlette
+            from starlette.responses import Response
+            from starlette.routing import Mount, Route
+
+            sse = SseServerTransport("/messages/")
+
+            async def handle_sse(request: Request):
+                async with sse.connect_sse(request.scope, request.receive, request._send) as streams:  # type: ignore[reportPrivateUsage]
+                    if not ckan_client.session:
+                            await ckan_client.__aenter__()
+                    await app.run(streams[0], streams[1],
+                        app.create_initialization_options()
+                        )
+                    
+                    
+                    return Response()
+
+            starlette_app = Starlette(
+                debug=True,
+                routes=[
+                    Route("/sse", endpoint=handle_sse, methods=["GET"]),
+                    Mount("/messages/", app=sse.handle_post_message),
+                ],
+            )
+
+            import uvicorn
+
+            uvicorn.run(starlette_app, host=host, port=port)
+        else:
+            from mcp.server.stdio import stdio_server
+
+            async def arun():
+                async with stdio_server() as streams:
+                    await app.run(streams[0], streams[1],                 InitializationOptions(
                     server_name="ckan-mcp-server",
                     server_version="1.0.0",
-                    capabilities=server.get_capabilities(
+                    capabilities=app.get_capabilities(
                         notification_options=NotificationOptions(),
                         experimental_capabilities={},
                     ),
-                ),
-            )
+                ),)
+
+            anyio.run(arun)
     finally:
         # Clean up CKAN client
-        await ckan_client.__aexit__(None, None, None)
+         ckan_client.__aexit__(None, None, None)
 
 if __name__ == "__main__":
     asyncio.run(main())
