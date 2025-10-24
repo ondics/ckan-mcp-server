@@ -7,7 +7,7 @@ setup(
     description="MCP Server for CKAN API integration",
     author="MCP CKAN Server",
     packages=find_packages(),
-    python_requires=">=3.8",
+    python_requires=">=3.13",
     install_requires=[
         "mcp>=1.0.0",
         "aiohttp>=3.8.0",

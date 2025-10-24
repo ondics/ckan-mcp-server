@@ -4,7 +4,7 @@
 # (C) Ondics GmbH
 #
 
-FROM python:3.13.4-slim-bookworm
+FROM python:3.14-slim-trixie
 
 ENV TZ="Europe/Berlin"
 
