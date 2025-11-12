@@ -2,7 +2,8 @@
 
 2025-11-12 - v1.1.0
 
-* ENH: Added HTTP as transport protocol
+* ENH: Added HTTP as transport protocol (MCP SSE Server Transport)
+* ENH: Logging Configurable CLI Params
 * ENH: BasicAuth for accessing protected CKAN sites
 * ENH: Added tool to access CKAN datastore contents
 
