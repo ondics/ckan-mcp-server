@@ -1,5 +1,9 @@
 # CHANGELOG
 
+2026-04-15 - v1.1.1
+
+* FIX: Fixed missing session initialization in stdio transport mode
+
 2025-11-12 - v1.1.0
 
 * ENH: Added HTTP as transport protocol (MCP SSE Server Transport)
