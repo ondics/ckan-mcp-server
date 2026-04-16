@@ -604,6 +604,8 @@ def main(host: str,port: int, transport: str,logpath:str,loglevel:str):
             from mcp.server.stdio import stdio_server
 
             async def arun():
+                if not ckan_client.session:
+                    await ckan_client.__aenter__()
                 async with stdio_server() as streams:
                     await app.run(streams[0], streams[1],                 InitializationOptions(
                     server_name="ckan-mcp-server",
