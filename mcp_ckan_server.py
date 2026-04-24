@@ -546,7 +546,13 @@ Full documentation: https://docs.ckan.org/en/latest/api/
 @click.option("--logpath",default="stderr",help="set path for Logfile")
 @click.option("--loglevel",default="INFO",type = click.Choice(logging.getLevelNamesMapping()),help="set Log Level")
 def main(host: str,port: int, transport: str,logpath:str,loglevel:str):
-    """Main server function"""
+
+    try:
+        anyio.run(start_server, host, port, transport, logpath, loglevel)
+    except (KeyboardInterrupt, SystemExit):
+        pass
+async def start_server(host: str,port: int, transport: str,logpath:str,loglevel:str):
+    """start_server function"""
     import os
     global logger
     if logpath == "stderr":
@@ -598,8 +604,9 @@ def main(host: str,port: int, transport: str,logpath:str,loglevel:str):
             )
 
             import uvicorn
-
-            uvicorn.run(starlette_app, host=host, port=port)
+            config = uvicorn.Config(starlette_app,host=host,port=port)
+            server = uvicorn.Server(config)
+            await server.serve()
         else:
             from mcp.server.stdio import stdio_server
 
@@ -615,11 +622,10 @@ def main(host: str,port: int, transport: str,logpath:str,loglevel:str):
                         experimental_capabilities={},
                     ),
                 ),)
-
-            anyio.run(arun)
+            await arun()
     finally:
         # Clean up CKAN client
          ckan_client.__aexit__(None, None, None)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
