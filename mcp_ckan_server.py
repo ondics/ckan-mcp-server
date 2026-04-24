@@ -64,7 +64,7 @@ class CKANAPIClient:
                 
             async with self.session.request(method, url, headers=headers, json=data,auth=auth) as response:
                 result = await response.json()
-                logger.warn(result)
+                logger.debug(result)
                 if not result.get('success', False):
                     error_msg = result.get('error', {})
                     raise Exception(f"CKAN API Error: {error_msg}")
