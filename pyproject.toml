@@ -1,6 +1,6 @@
 [project]
 name = "ckan-mcp-server"
-version = "0.0.1"
+version = "1.1.2"
 description = "A Model Context Protocol (MCP) server for the CKAN API that enables browsing and managing CKAN data portals through MCP-compatible clients."
 readme = "README.md"
 requires-python = ">=3.13"
@@ -14,7 +14,7 @@ dependencies = [
     "mcp>=1.19.0",
     "python-dotenv>=1.1.0",
     "uv>=0.8.9",
-    "certifi==2025.8.3",
+    "certifi>=2026.2.25",
 ]
 
 [build-system]

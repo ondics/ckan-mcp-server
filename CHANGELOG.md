@@ -1,5 +1,11 @@
 # CHANGELOG
 
+2026-4-24 - v1.1.2
+
+* FIX: LogLevel from WARNING to DEBUG Level for CKAN API Responses
+* FIX: CTRL+C / Docker restarts hang
+* FIX: Reconnecting SSE Client causing crash
+
 2026-04-15 - v1.1.1
 
 * FIX: Fixed missing session initialization in stdio transport mode
