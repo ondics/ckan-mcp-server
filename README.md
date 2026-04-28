@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/ondics-ckan-mcp-server-badge.png)](https://mseep.ai/app/ondics-ckan-mcp-server)
+
 
 # CKAN MCP Server
 
