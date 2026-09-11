@@ -60,7 +60,7 @@ cp .env.example .env
 docker-compose up
 ```
 
-## Available Tools
+## Tools
 
 The MCP server provides the following tools:
 
