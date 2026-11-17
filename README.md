@@ -1,7 +1,11 @@
-
 # CKAN MCP Server
 
 A Model Context Protocol (MCP) server for the CKAN API that enables browsing and managing CKAN data portals through MCP-compatible clients.
+
+Listed here:
+
+[![CKAN MCP server](https://mcprush.com/badge/ckan-mcp/card.svg)](https://mcprush.com/to/ckan-mcp?ref=badge)
+
 
 ## What is this?
 
